@@ -7,7 +7,7 @@ app.use(express.json());
 
 app.get('/api', (req, res) => {
   res.send('Hello world!',
-    'How are you???'
+    'How are you??'
   );
 });
 
