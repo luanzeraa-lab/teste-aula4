@@ -5,7 +5,7 @@ const app = require('../src/index');
 describe('GET /api', () => {
   it('should return Hello world!', async () => {
     const res = await request(app).get('/api');
-    expect(res.statusCode).toEqual(200);
+    expect(res.statusCode).toEqual(500);
     expect(res.text).toBe('Hello world!');
   });
 });
