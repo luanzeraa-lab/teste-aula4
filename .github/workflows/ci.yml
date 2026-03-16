@@ -20,7 +20,6 @@ jobs:
 
       - name: Instalar dependências
         run: npm install
-        working-directory: iec-aula4
 
       - name: Rodar build
         run: npm run build
