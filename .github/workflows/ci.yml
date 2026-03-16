@@ -77,10 +77,15 @@ jobs:
         run: |
           git config --global user.name 'luanzeraa-lab'
           git config --global user.email 'luansilvapicoli@gmail.com'
-          git add package.json
-          git commit -m "chore(release): version ${{ env.new_version }}"
-          git tag v${{ env.new_version }}
-          git push origin main --tags
+          
+          if git diff --quiet package.json; then
+            echo "Nenhuma mudança de versão"
+          else
+            git add package.json
+            git commit -m "chore(release): version ${{ env.new_version }}"
+            git tag v${{ env.new_version }}
+            git push origin main --tags
+          fi
 
       - name: Enviar email se pipeline falhar
         if: failure()
