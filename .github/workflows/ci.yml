@@ -30,7 +30,7 @@ jobs:
         run: npm test    
       #PARTE 1 - Até aqui
 
-      #PARTE 2 - A partir daqui (descomentar)
+      #PARTE 2 - A partir daqui (descomentar).
       - name: Checkout do código
         uses: actions/checkout@v2
         with:
