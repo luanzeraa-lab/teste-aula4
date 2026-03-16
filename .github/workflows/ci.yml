@@ -9,16 +9,20 @@ on:
 
 jobs:
   version:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '22'
+          node-version: 22
 
       - name: Instalar dependências
         run: npm install
@@ -26,70 +30,44 @@ jobs:
       - name: Rodar build
         run: npm run build
 
-      - name: Testes unitarios
-        run: npm test    
-      #PARTE 1 - Até aqui
-
-      #PARTE 2 - A partir daqui (descomentar).
-      - name: Checkout do código
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 0
+      - name: Rodar testes
+        run: npm test
 
       - name: Instalar semver
         run: npm install -g semver
 
-      - name: Criar nova tag caso não exista
-        id: create_initial_tag
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          if [ -z "$(git tag)" ]; then
-            git config --global user.name 'luanzeraa-lab'
-            git config --global user.email 'luansilvapicoli@gmail.com'
-            git tag -a v0.0.0 -m "Initial release"
-            git push origin v0.0.0
-          fi
-
-      - name: Calcular nova versão
+      - name: Pegar última versão
         id: version
         run: |
           git fetch --tags
-          LAST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-          if [ -z "$LAST_TAG" ]; then
-            LAST_TAG="v0.0.0"
-          fi
-          
-          echo "Versão atual: $LAST_TAG"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+          echo "Última versão: $LAST_TAG"
 
           CURRENT_VERSION=${LAST_TAG#v}
           NEW_VERSION=$(semver -i patch $CURRENT_VERSION)
 
           echo "Nova versão: $NEW_VERSION"
+
           echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Atualizar versão no package.json
-        run: |
-          npm version ${{ env.new_version }} --no-git-tag-version
+      - name: Atualizar package.json
+        run: npm version ${{ env.new_version }} --no-git-tag-version
 
-      - name: Commit e push
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Commit e criar tag
         run: |
-          git config --global user.name 'luanzeraa-lab'
-          git config --global user.email 'luansilvapicoli@gmail.com'
-          
-          if git diff --quiet package.json; then
-            echo "Nenhuma mudança de versão"
-          else
-            git add package.json
-            git commit -m "chore(release): version ${{ env.new_version }}"
-            git tag v${{ env.new_version }}
-            git push origin main --tags
-          fi
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
 
-      - name: Enviar email se pipeline falhar
+          git add package.json
+          git commit -m "chore(release): version ${{ env.new_version }} [skip ci]" || echo "Sem mudanças"
+
+          git tag v${{ env.new_version }}
+
+          git push origin main
+          git push origin v${{ env.new_version }}
+
+      - name: Enviar email se falhar
         if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
