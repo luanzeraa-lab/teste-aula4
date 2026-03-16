@@ -44,11 +44,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           if [ -z "$(git tag)" ]; then
-            git config --global user.name 'github-actions'
-            git config --global user.email 'github-actions@github.com'
+            git config --global user.name 'luanzeraa-lab'
+            git config --global user.email 'luansilvapicoli@gmail.com'
             git tag -a v0.0.0 -m "Initial release"
             git push origin v0.0.0
           fi
+
+      - name: Calcular nova versão
+        id: version
+        run: |
+          git fetch --tags
+          LAST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG="v0.0.0"
+          fi
+          
+          echo "Versão atual: $LAST_TAG"
+
+          CURRENT_VERSION=${LAST_TAG#v}
+          NEW_VERSION=$(semver -i patch $CURRENT_VERSION)
+
+          echo "Nova versão: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Atualizar versão no package.json
         run: |
@@ -58,8 +75,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
+          git config --global user.name 'luanzeraa-lab'
+          git config --global user.email 'luansilvapicoli@gmail.com'
           git add package.json
           git commit -m "chore(release): version ${{ env.new_version }}"
           git tag v${{ env.new_version }}
