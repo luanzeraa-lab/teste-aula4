@@ -1,6 +1,6 @@
 {
   "name": "api-exemplo",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Exemplo de API NodeJs para teste de uma pipeline CI",
   "main": "src/index.js",
   "scripts": {
